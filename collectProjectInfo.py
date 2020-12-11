@@ -106,10 +106,6 @@ for item in urlList:
     for key in arrayClass:
         projectInfoArray.append(arrayClass[key])
 
-
-# ★必要な情報を閲覧するためのHTMLを作成★
-
-sys.exit()
-
-for item in newsHeadings:
-    print(item)
+'''
+必要な情報を閲覧するためのHTMLを作成
+'''
