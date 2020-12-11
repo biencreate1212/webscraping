@@ -3,7 +3,9 @@ import sys
 import re
 from bs4 import BeautifulSoup
 
-# ↓スクレピング対象のURL初期化↓
+'''
+スクレピング対象のURL初期化
+'''
 # システム開発・運用URL (ベースURL)
 lancersBaseUrl = 'https://www.lancers.jp/work/search/system'
 # キーワード=初心者OK
@@ -23,16 +25,14 @@ aliasList = [lancersWebSystemAlias, lancersSmartPhoneAlias, lancersAppDevAlias, 
 for item in aliasList:
     urlList.append(lancersBaseUrl + "/" + item + lancersQueryCondition)
 
-# ↑スクレピング対象のURL初期化↑
-
-# ↓Httpリクエスト発行↓
-
+'''
+Httpリクエスト発行
+'''
 # リクエスト発行時に設定するヘッダー情報
 headers = { "User-Agent": "Mozilla/5.0  (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"}
-
 # 案件情報格納用クラス
 class ProjectInfo:
-    projectName = ""
+    projectName = ''
     link = ''
     price = ''
     applyTerm = ''
@@ -87,82 +87,25 @@ def getProjectInfo(url, headers):
 
             dictionaryToReturn[projectInfo.projectName] =  projectInfo
 
-        # ループの終了条件を変更
-        tmpSoup = soup.find('a', class_='pager__item__anchor')
-
-
-        print(dictionaryToReturn)
-
-        for item in dictionaryToReturn:
-            print(dictionaryToReturn[item].projectName)
-            print(dictionaryToReturn[item].price)
-            print(dictionaryToReturn[item].link)
-            print(dictionaryToReturn[item].applyTerm)
-            print(dictionaryToReturn[item].programLanguage)
-            print('\n' + 'ZZZZZZZZZZZZZZZ' + '\n')
-
-        sys.exit()
-        # TODO: Web・システム開発に関しては成功。あとはwhileが正しく回るように修正する
-
-        if tmpSoup is not None:
+        # 「次へ」がページにある場合、次のページに遷移し、ループする
+        nextButtonHTML = soup.find('span', class_='pager__item pager__item--next')
+        if nextButtonHTML is not None:
             # targetUrlの更新処理
-            href = tmpSoup.get('href')
-            targetUrl = baseUrl + href
+            nextPageUrl = nextButtonHTML.a.get('href')
+            targetUrl = baseUrl + nextPageUrl
             isNextFound = True
         else:
             isNextFound = False
 
-
-
     return dictionaryToReturn
 
-
-tmp = []
+# 対象の4サイトから取得した情報を1つの配列にまとめる
+projectInfoArray = []
 for item in urlList:
     arrayClass = getProjectInfo(item, headers)
-    for key in array:
-        tmp.append(array[key])
+    for key in arrayClass:
+        projectInfoArray.append(arrayClass[key])
 
-print()
-
-# ↑Httpリクエスト発行↑
-
-# ↓取得したHTMLから必要な情報を抜き出し整理↓
-
-# 1.「classにc-media-list__item c-media」が含まれているdivを取得
-#       ページが複数ある場合は、ページ分繰り返す
-#       タグ=「初心者OK」の案件のみ
-#
-# 2. 1.で集まった情報から、以下を抽出
-#    案件名、値段、募集期間、取引期間、開発言語(あれば)
-
-
-### 案件名取得メソッドの定義
-### tag="span", かつclass="c-media__title-inner"のものを検索し、li要素を除いて返却
-def getProjectNameForLancers (soup):
-
-    # 案件名の取得
-    projectNameHTMLWithli = soup.find("span", class_="c-media__title-inner")
-
-    # 取得したHTMLからli要素を削除
-    liToDelete = projectNameHTMLWithli.li
-    liToDelete.decompose()
-
-    return projectNameHTMLWithli.get_text().strip()
-
-# 案件名の取得
-projectName = getProjectNameForLancers (soupLancers)
-
-# メモ
-# ランサーズ
-# カテゴリ: Web・システム開発、スマホアプリモバイル開発、アプリケーション開発、業務システムツール開発
-# 検索条件: タグ=初心者OK、
-# 欲しい情報: 案件名、値段、募集期間、取引期間、開発言語
-
-if len(projectName) > 0:
-    print(projectName)
-
-#2020/12/9
 
 # ★必要な情報を閲覧するためのHTMLを作成★
 
