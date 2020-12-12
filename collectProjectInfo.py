@@ -1,7 +1,9 @@
 import requests
 import sys
 import re
+import webbrowser
 from bs4 import BeautifulSoup
+from jinja2 import Template, Environment, FileSystemLoader
 
 '''
 スクレピング対象のURL初期化
@@ -36,8 +38,7 @@ class ProjectInfo:
     link = ''
     price = ''
     applyTerm = ''
-    workPeriod = ''
-    programLanguage = ''
+    programLanguage = '未定/希望なし'
 
 # 対象のURLからHTMLを取得し、「次へ」ボタンがページにある間、処理を繰り返す
 def getProjectInfo(url, headers):
@@ -100,12 +101,40 @@ def getProjectInfo(url, headers):
     return dictionaryToReturn
 
 # 対象の4サイトから取得した情報を1つの配列にまとめる
-projectInfoArray = []
+projectInfoArray = {}
 for item in urlList:
     arrayClass = getProjectInfo(item, headers)
     for key in arrayClass:
-        projectInfoArray.append(arrayClass[key])
+        projectInfoArray[key] = arrayClass[key]
+
+'''
+for item in projectInfoArray:
+    print(projectInfoArray[item].projectName)
+    print(projectInfoArray[item].link)
+    print(projectInfoArray[item].price)
+    print(projectInfoArray[item].applyTerm)
+    print(projectInfoArray[item].programLanguage)
+    print('\n')
+
+sys.exit()
+'''
 
 '''
 必要な情報を閲覧するためのHTMLを作成
 '''
+
+# テンプレートファイルの読み込み
+env = Environment(loader = FileSystemLoader('./', encoding='utf-8'))
+template = env.get_template('template.j2')
+
+# templateからHTMLを作成
+renderedHTML = template.render({'projectInfo': projectInfoArray})
+
+# 作成したHTMLでファイルを作成
+htmlFilePath = '/Users/Koichi/Private/WorkHelp/Webscraping/freelanceProjectForBeginners.html'
+with open(htmlFilePath, mode='w') as file:
+    file.write(renderedHTML)
+
+# 作成されたHTMLファイルを開く
+localPath = 'file://' + htmlFilePath
+webbrowser.open_new_tab(localPath)
